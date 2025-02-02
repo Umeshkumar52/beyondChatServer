@@ -5,12 +5,13 @@ const cors = require("cors");
 const app = express();
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { log } = require("console");
 const port = 5000;
 app.use(bodyParser.json());
 dotenv.config();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cors("*"));
 // Dummy data simulating a web scraping result
 const dummyScrapedData = [
   {
@@ -85,15 +86,18 @@ app.post("/sendmail", async (req, res) => {
 // send otp
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
-  const otp = crypto.randomInt(1000000, 999999).toString();
+  const otp = crypto.randomInt(1000, 9999).toString();
   // otp expire in 5 minet
   otp_store[email] = {
     otp,
     expireAt: Date.now() + 5 * 60 * 1000,
   };
-  // email transporter
+  // email transporter  
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    // service: "gmail",
+    host:"smtp.gmail.com",
+    port:587,
+    secure:false,
     auth: {
       user: process.env.EMAIL,
       pass: process.env.PASSWORD,
@@ -112,7 +116,8 @@ app.post("/send-otp", async (req, res) => {
       message: "OTP Send Successfully",
     });
   } catch (error) {
-    res.status(201).json({
+    console.log(error);
+    res.status(201).json({      
       message: "Error Sending OTP",
     });
   }
@@ -120,15 +125,16 @@ app.post("/send-otp", async (req, res) => {
 // verify otp
 app.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
-  if (!otp_store[email]) return;
-  res.status(400).json({
+  if (!otp_store[email]){
+  return res.status(400).json({
     message: "Invalid OTP",
   });
+  }  
   const { otp: storedotp, expireAt } = otp_store[email];
-  if (Date.now > expireAt) return;
-  res.status(400).json({
+  if (Date.now > expireAt){
+       return res.status(400).json({
     message: "OTP expired !",
-  });
+  })}
   if (otp == storedotp) {
     delete otp_store[email];
     return res.status(200).json({
