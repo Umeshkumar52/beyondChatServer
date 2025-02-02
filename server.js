@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 dotenv.config();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors("*"));
+app.use(cors());
 // Dummy data simulating a web scraping result
 const dummyScrapedData = [
   {
@@ -52,10 +52,12 @@ app.get("/scrape", async (req, res) => {
   res.json(dummyScrapedData);
 });
 app.post("/sendmail", async (req, res) => {
-  try {
+  try {   
     const { email } = req.body;
     let transporter = nodemailer.createTransport({
-      service: "gmail",
+    host:"smtp.gmail.com",
+    port:587,
+    secure:false,
       auth: {
         user: process.env.EMAIL,
         pass: process.env.PASSWORD,
@@ -78,9 +80,7 @@ app.post("/sendmail", async (req, res) => {
       message: `Instructions Sent to ${email} Successfully`,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to send email instruction", error });
+   return res.status(500).json({ message: "Failed to send email instruction" });
   }
 });
 // send otp
@@ -94,7 +94,6 @@ app.post("/send-otp", async (req, res) => {
   };
   // email transporter  
   const transporter = nodemailer.createTransport({
-    // service: "gmail",
     host:"smtp.gmail.com",
     port:587,
     secure:false,
@@ -116,7 +115,6 @@ app.post("/send-otp", async (req, res) => {
       message: "OTP Send Successfully",
     });
   } catch (error) {
-    console.log(error);
     res.status(201).json({      
       message: "Error Sending OTP",
     });
