@@ -5,7 +5,6 @@ const cors = require("cors");
 const app = express();
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const { log } = require("console");
 const port = 5000;
 app.use(bodyParser.json());
 dotenv.config();
@@ -50,10 +49,10 @@ let organisationdata = [];
 // API endpoint simulating a scrape result
 app.get("/scrape", async (req, res) => {
   res.json(dummyScrapedData);
-});
+})
 app.post("/sendmail", async (req, res) => {
   try {   
-    const { email } = req.body;
+    const { email }=req.body;
     let transporter = nodemailer.createTransport({
     host:"smtp.gmail.com",
     port:587,
